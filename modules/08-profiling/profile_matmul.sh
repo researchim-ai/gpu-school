@@ -17,7 +17,7 @@ fi
 
 echo "[1/2] Nsight Compute..."
 OUTPUT_NCU=matmul_tiled.ncu-rep
-ncu --set full --target-processes all --export "$OUTPUT_NCU" -- "$BIN" $N | tee matmul_tiled.ncu.txt
+ncu --set full -o matmul_tiled --target-processes all -- "$BIN" $N | tee matmul_tiled.ncu.txt
 
 echo "Отчёт Nsight Compute сохранён в $OUTPUT_NCU (и matmul_tiled.ncu.txt)"
 
@@ -25,7 +25,7 @@ echo "Отчёт Nsight Compute сохранён в $OUTPUT_NCU (и matmul_tiled
 
 echo "[2/2] Nsight Systems..."
 OUTPUT_NSYS=matmul_tiled.nsys-rep
-nsys profile --output="$OUTPUT_NSYS" --sample=none --trace=cuda,osrt -- "$BIN" $N
+nsys profile --output="$OUTPUT_NSYS" --sample none --trace="cuda,osrt" -- "$BIN" $N
 
 echo "Отчёт Nsight Systems сохранён в $OUTPUT_NSYS.qdrep"
 
