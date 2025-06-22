@@ -1,0 +1,3 @@
+add_executable(memory_access src/memory_access.cu)
+set_target_properties(memory_access PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+target_compile_features(memory_access PUBLIC cxx_std_17) 

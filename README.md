@@ -18,9 +18,19 @@
 2. Соберите проект:
 
 ```bash
-mkdir -p build && cd build
-cmake .. -DCMAKE_BUILD_TYPE=Release
-cmake --build . -j$(nproc)
+# из корня репозитория:
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build -j$(nproc)
+# запуск всех примеров и тестов
+ctest --test-dir build --output-on-failure
+```
+
+Если нужно собрать и запустить только один пример:
+
+```bash
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build --target hello_gpu -j$(nproc)
+./build/hello_gpu
 ```
 
 3. Запустите проверку окружения:
