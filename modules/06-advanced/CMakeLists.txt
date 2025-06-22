@@ -1,0 +1,3 @@
+add_executable(graph_vector_add src/graph_vector_add.cu)
+set_target_properties(graph_vector_add PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+target_compile_features(graph_vector_add PUBLIC cxx_std_17) 
