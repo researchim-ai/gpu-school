@@ -1,0 +1,5 @@
+find_package(CUDAToolkit REQUIRED cublas)
+add_executable(gemm_cublas src/gemm_cublas.cu)
+target_link_libraries(gemm_cublas PRIVATE CUDA::cublas)
+set_target_properties(gemm_cublas PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+target_compile_features(gemm_cublas PUBLIC cxx_std_17) 
