@@ -1,0 +1,3 @@
+add_executable(matmul_naive src/matmul_naive.cu)
+set_target_properties(matmul_naive PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+target_compile_features(matmul_naive PUBLIC cxx_std_17) 

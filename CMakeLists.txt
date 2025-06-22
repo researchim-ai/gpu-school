@@ -6,6 +6,7 @@ project(gpu_school LANGUAGES C CXX CUDA)
 add_subdirectory(modules/00-intro)
 add_subdirectory(modules/01-architecture)
 add_subdirectory(modules/02-basics)
+add_subdirectory(modules/03-memory)
 
 # Размещаем все исполняемые файлы прямо в корневой директории сборки
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
@@ -15,4 +16,5 @@ enable_testing()
 
 add_test(NAME hello_gpu COMMAND hello_gpu)
 add_test(NAME memory_access COMMAND memory_access)
-add_test(NAME vector_add COMMAND vector_add) 
+add_test(NAME vector_add COMMAND vector_add)
+add_test(NAME matmul_naive COMMAND matmul_naive) 
