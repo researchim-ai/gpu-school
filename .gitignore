@@ -192,3 +192,45 @@ cython_debug/
 #  refer to https://docs.cursor.com/context/ignore-files
 .cursorignore
 .cursorindexingignore
+
+# === IDE directories ===
+.vscode/
+.idea/
+
+# === CMake / build artifacts (C/CUDA) ===
+cmake-build-*/
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+
+# === Compiled binaries and objects (C/C++) ===
+*.o
+*.obj
+*.a
+*.lib
+*.so
+*.dll
+*.exe
+*.out
+*.app
+
+# === CUDA intermediate files ===
+*.ptx
+*.cubin
+*.linkinfo
+*.d
+
+# === Additional cache/temp/log files ===
+*.log
+*.tmp
+*.cache
+
+# === Dotenv variations ===
+.env.*
+
+# === Notebook checkpoints (explicit trailing slash) ===
+.ipynb_checkpoints/
+
+# === Documentation build (Sphinx etc.) ===
+docs/_build/
