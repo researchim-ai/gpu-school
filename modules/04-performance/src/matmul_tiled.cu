@@ -81,39 +81,39 @@ void matmulCPU(const std::vector<float>& A,
 int main(int argc, char** argv) {
     int N = 512;
     if (argc == 2) N = std::atoi(argv[1]);
-    size_t bytes = N * N * sizeof(float);
+    size_t bytes = N * N * sizeof(float);   // общий объём данных одной матрицы в байтах
 
-    std::vector<float> h_A(N * N), h_B(N * N), h_C(N * N), h_ref(N * N);
-    for (int i = 0; i < N * N; ++i) {
+    std::vector<float> h_A(N * N), h_B(N * N), h_C(N * N), h_ref(N * N); // host-буферы
+    for (int i = 0; i < N * N; ++i) {       // инициализация входных данных
         h_A[i] = static_cast<float>(i % 100) / 100.0f;
         h_B[i] = static_cast<float>((i * 3) % 100) / 100.0f;
     }
 
-    float *d_A, *d_B, *d_C;
-    check(cudaMalloc(&d_A, bytes), "malloc A");
+    float *d_A, *d_B, *d_C;                 // device-указатели
+    check(cudaMalloc(&d_A, bytes), "malloc A"); // выделяем GPU-память
     check(cudaMalloc(&d_B, bytes), "malloc B");
     check(cudaMalloc(&d_C, bytes), "malloc C");
 
-    check(cudaMemcpy(d_A, h_A.data(), bytes, cudaMemcpyHostToDevice), "copy A");
+    check(cudaMemcpy(d_A, h_A.data(), bytes, cudaMemcpyHostToDevice), "copy A"); // H→D копия
     check(cudaMemcpy(d_B, h_B.data(), bytes, cudaMemcpyHostToDevice), "copy B");
 
-    dim3 block(TILE, TILE);
-    dim3 grid((N + TILE - 1) / TILE, (N + TILE - 1) / TILE);
+    dim3 block(TILE, TILE);                 // блок 16×16 нитей
+    dim3 grid((N + TILE - 1) / TILE, (N + TILE - 1) / TILE); // grid покрывает всё
 
-    cudaEvent_t start, stop;
+    cudaEvent_t start, stop;                // события замера времени
     cudaEventCreate(&start);
     cudaEventCreate(&stop);
-    cudaEventRecord(start);
+    cudaEventRecord(start);                 // T0
 
-    matmulTiled<<<grid, block>>>(d_A, d_B, d_C, N);
+    matmulTiled<<<grid, block>>>(d_A, d_B, d_C, N); // запуск оптимизированного ядра
     check(cudaGetLastError(), "kernel");
 
     cudaEventRecord(stop);
     cudaEventSynchronize(stop);
     float ms_gpu = 0.f;
-    cudaEventElapsedTime(&ms_gpu, start, stop);
+    cudaEventElapsedTime(&ms_gpu, start, stop); // Δt GPU
 
-    check(cudaMemcpy(h_C.data(), d_C, bytes, cudaMemcpyDeviceToHost), "copy back");
+    check(cudaMemcpy(h_C.data(), d_C, bytes, cudaMemcpyDeviceToHost), "copy back"); // D→H
 
     // CPU ref for validation (optional, for small N)
     bool validate = (N <= 512);

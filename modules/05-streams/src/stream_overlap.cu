@@ -38,16 +38,16 @@ static inline void check(cudaError_t err, const char* msg) {
 }
 
 int main(int argc, char** argv) {
-    size_t totalBytes = 64 * (1 << 20); // 64 MB по умолчанию
+    size_t totalBytes = 64 * (1 << 20); // общий объём данных (байты) по умолчанию — 64 MB
     if (argc == 2) totalBytes = std::atoi(argv[1]) * (1 << 20);
 
-    size_t totalElems = totalBytes / sizeof(float);
-    size_t elemsPerChunk  = (totalElems + CHUNKS - 1) / CHUNKS;
-    size_t bytesPerChunk  = elemsPerChunk * sizeof(float);
+    size_t totalElems = totalBytes / sizeof(float);  // количество элементов массива
+    size_t elemsPerChunk  = (totalElems + CHUNKS - 1) / CHUNKS; // элементов в чанке (ceil)
+    size_t bytesPerChunk  = elemsPerChunk * sizeof(float);      // байт в чанке
 
     // --- 1. Выделяем pinned host memory (ускоряет асинхр. копирование) ---
     float *h_x, *h_y;
-    check(cudaHostAlloc(&h_x, totalBytes, cudaHostAllocDefault), "host alloc x");
+    check(cudaHostAlloc(&h_x, totalBytes, cudaHostAllocDefault), "host alloc x"); // pinned host alloc
     check(cudaHostAlloc(&h_y, totalBytes, cudaHostAllocDefault), "host alloc y");
     for (size_t i = 0; i < totalElems; ++i) { h_x[i] = 1.0f; h_y[i] = 2.0f; }
 
@@ -58,9 +58,9 @@ int main(int argc, char** argv) {
 
     // --- 3. Создаём стримы ---
     cudaStream_t streams[CHUNKS];
-    for (int i = 0; i < CHUNKS; ++i) cudaStreamCreate(&streams[i]);
+    for (int i = 0; i < CHUNKS; ++i) cudaStreamCreate(&streams[i]); // создаём стримы
 
-    auto t0 = std::chrono::high_resolution_clock::now();
+    auto t0 = std::chrono::high_resolution_clock::now(); // старт таймера CPU
 
     // --- 4. Обработка чанков ---
     for (int c = 0; c < CHUNKS; ++c) {
@@ -78,8 +78,8 @@ int main(int argc, char** argv) {
                               cudaMemcpyHostToDevice, s), "H2D y");
 
         // Конфигурация ядра
-        int blocks = (thisElems + THREADS - 1) / THREADS;
-        saxpy<<<blocks, THREADS, 0, s>>>(2.0f, d_x + offsetElem, d_y + offsetElem, thisElems);
+        int blocks = (thisElems + THREADS - 1) / THREADS;   // число блоков для ядра
+        saxpy<<<blocks, THREADS, 0, s>>>(2.0f, d_x + offsetElem, d_y + offsetElem, thisElems); // запуск ядра в своём стриме
         check(cudaGetLastError(), "kernel");
 
         // D2H копия результата
@@ -88,10 +88,10 @@ int main(int argc, char** argv) {
     }
 
     // --- 5. Синхронизируемся со всеми стримами ---
-    check(cudaDeviceSynchronize(), "device sync");
+    check(cudaDeviceSynchronize(), "device sync");   // ждём завершения всех стримов
 
     auto t1 = std::chrono::high_resolution_clock::now();
-    double ms_total = std::chrono::duration<double, std::milli>(t1 - t0).count();
+    double ms_total = std::chrono::duration<double, std::milli>(t1 - t0).count(); // общее время, мс
 
     // --- 6. Проверяем корректность (берём 5 случайных точек) ---
     bool ok = true;
@@ -101,10 +101,10 @@ int main(int argc, char** argv) {
     }
 
     printf("Total data: %.2f MB, chunks: %d, time: %.2f ms, %.2f GB/s, %s\n",
-           totalBytes / 1e6, CHUNKS, ms_total, (totalBytes * 3) / 1e6 / ms_total, ok ? "OK" : "FAIL");
+           totalBytes / 1e6, CHUNKS, ms_total, (totalBytes * 3) / 1e6 / ms_total, ok ? "OK" : "FAIL"); // вывод статистики
 
     for (auto& s : streams) cudaStreamDestroy(s);
-    cudaFree(d_x); cudaFree(d_y);
-    cudaFreeHost(h_x); cudaFreeHost(h_y);
+    cudaFree(d_x); cudaFree(d_y);                   // освобождаем device-память
+    cudaFreeHost(h_x); cudaFreeHost(h_y);           // освобождаем host pinned memory
     return ok ? 0 : 1;
 } 

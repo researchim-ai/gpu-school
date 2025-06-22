@@ -42,40 +42,40 @@ static void gemmCPU(const std::vector<float>& A,
     } while (0)
 
 int main(int argc, char** argv) {
-    int N = 1024;                  // размер матрицы
+    int N = 1024;                  // размер квадратной матрицы
     if (argc == 2) N = std::atoi(argv[1]);
-    size_t bytes = N * N * sizeof(float);
+    size_t bytes = N * N * sizeof(float); // объём одной матрицы в байтах
 
     // Host matrices (row-major)
-    std::vector<float> h_A(N * N), h_B(N * N), h_C(N * N), h_ref(N * N);
+    std::vector<float> h_A(N * N), h_B(N * N), h_C(N * N), h_ref(N * N); // host-буферы
     for (int i = 0; i < N * N; ++i) {
-        h_A[i] = static_cast<float>(i % 100) / 100.0f;
+        h_A[i] = static_cast<float>(i % 100) / 100.0f; // 0..0.99
         h_B[i] = static_cast<float>((i * 3) % 100) / 100.0f;
     }
 
     // Device matrices in column-major (so just copy row-major, interpret accordingly)
-    float *d_A, *d_B, *d_C;
-    cudaMalloc(&d_A, bytes);
+    float *d_A, *d_B, *d_C;        // device-память
+    cudaMalloc(&d_A, bytes);       // выделяем
     cudaMalloc(&d_B, bytes);
     cudaMalloc(&d_C, bytes);
 
-    cudaMemcpy(d_A, h_A.data(), bytes, cudaMemcpyHostToDevice);
+    cudaMemcpy(d_A, h_A.data(), bytes, cudaMemcpyHostToDevice); // H→D копия
     cudaMemcpy(d_B, h_B.data(), bytes, cudaMemcpyHostToDevice);
 
-    cublasHandle_t handle;
-    CHECK_CUBLAS(cublasCreate(&handle));
+    cublasHandle_t handle;         // контекст cuBLAS
+    CHECK_CUBLAS(cublasCreate(&handle)); // создаём handle
 
-    const float alpha = 1.0f;
+    const float alpha = 1.0f;      // коэффициенты GEMM
     const float beta  = 0.0f;
 
     auto t0 = std::chrono::high_resolution_clock::now();
 
     // cuBLAS по умолчанию работает с column-major, поэтому меняем порядок опер.
     CHECK_CUBLAS(cublasSgemm(handle,
-                             CUBLAS_OP_N, CUBLAS_OP_N,
+                             CUBLAS_OP_N, CUBLAS_OP_N, // без транспонирования
                              N, N, N,
                              &alpha,
-                             d_B, N,   // B — левая матрица в column-major → передаём как transposed
+                             d_B, N,   // B в column-major → идёт первой
                              d_A, N,
                              &beta,
                              d_C, N));
@@ -84,14 +84,14 @@ int main(int argc, char** argv) {
     auto t1 = std::chrono::high_resolution_clock::now();
     double ms_gpu = std::chrono::duration<double, std::milli>(t1 - t0).count();
 
-    cudaMemcpy(h_C.data(), d_C, bytes, cudaMemcpyDeviceToHost);
+    cudaMemcpy(h_C.data(), d_C, bytes, cudaMemcpyDeviceToHost); // D→H копия результата
 
     // CPU reference (маленькие размеры, иначе долго)
     bool validate = (N <= 512);
     double ms_cpu = 0.0;
     if (validate) {
         auto c0 = std::chrono::high_resolution_clock::now();
-        gemmCPU(h_A, h_B, h_ref, N);
+        gemmCPU(h_A, h_B, h_ref, N);        // CPU-версия GEMM
         auto c1 = std::chrono::high_resolution_clock::now();
         ms_cpu = std::chrono::duration<double, std::milli>(c1 - c0).count();
         bool ok = true;
@@ -108,7 +108,7 @@ int main(int argc, char** argv) {
         printf("Speedup:  %.2fx\n", ms_cpu / ms_gpu);
     }
 
-    cublasDestroy(handle);
-    cudaFree(d_A); cudaFree(d_B); cudaFree(d_C);
+    cublasDestroy(handle);         // освобождаем handle
+    cudaFree(d_A); cudaFree(d_B); cudaFree(d_C); // освобождаем память
     return 0;
 } 

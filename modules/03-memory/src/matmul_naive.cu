@@ -65,62 +65,67 @@ int main(int argc, char** argv) {
     int N = 512; // размер по умолчанию (512×512)
     if (argc == 2) N = std::atoi(argv[1]);
 
-    size_t bytes = N * N * sizeof(float);
+    size_t bytes = N * N * sizeof(float);  // общий объём данных одной матрицы N×N в байтах
 
-    // --- Host-матрицы ---
-    std::vector<float> h_A(N * N), h_B(N * N), h_C(N * N), h_ref(N * N);
-    for (int i = 0; i < N * N; ++i) {
-        h_A[i] = static_cast<float>(i % 100) / 100.0f;
-        h_B[i] = static_cast<float>((i * 3) % 100) / 100.0f;
+    // --- Host-матрицы --- (выделяем и инициализируем)
+    // h_A, h_B содержат входные данные; h_C — результат, h_ref — CPU-эталон
+    std::vector<float> h_A(N * N), h_B(N * N), h_C(N * N), h_ref(N * N); // host-буферы (A, B, результат C, CPU-эталон)
+    for (int i = 0; i < N * N; ++i) {          // инициализация входных матриц псевдослучайн. числами
+        h_A[i] = static_cast<float>(i % 100) / 100.0f;  // значение 0.00..0.99
+        h_B[i] = static_cast<float>((i * 3) % 100) / 100.0f; // другое распределение
     }
 
-    // --- Device-память ---
-    float *d_A, *d_B, *d_C;
-    check(cudaMalloc(&d_A, bytes), "malloc A");
-    check(cudaMalloc(&d_B, bytes), "malloc B");
-    check(cudaMalloc(&d_C, bytes), "malloc C");
+    // --- Device-память --- (cudaMalloc три буфера)
+    float *d_A, *d_B, *d_C;                    // device-указатели
+    check(cudaMalloc(&d_A, bytes), "malloc A"); // выделяем GPU-память под A
+    check(cudaMalloc(&d_B, bytes), "malloc B"); // выделяем GPU-память под B
+    check(cudaMalloc(&d_C, bytes), "malloc C"); // выделяем GPU-память под C
 
-    check(cudaMemcpy(d_A, h_A.data(), bytes, cudaMemcpyHostToDevice), "copy A");
-    check(cudaMemcpy(d_B, h_B.data(), bytes, cudaMemcpyHostToDevice), "copy B");
+    // Копируем входные матрицы на устройство (H2D)
+    check(cudaMemcpy(d_A, h_A.data(), bytes, cudaMemcpyHostToDevice), "copy A"); // H→D копия A
+    check(cudaMemcpy(d_B, h_B.data(), bytes, cudaMemcpyHostToDevice), "copy B"); // H→D копия B
 
-    dim3 block(TILE, TILE);
-    dim3 grid((N + TILE - 1) / TILE, (N + TILE - 1) / TILE);
+    // --- Конфигурация сетки ---
+    // Блок TILE×TILE, grid покрывает всю матрицу (ceil)
+    dim3 block(TILE, TILE);                    // блок 16×16 нитей
+    dim3 grid((N + TILE - 1) / TILE, (N + TILE - 1) / TILE); // grid покрывает матрицу
 
-    // --- GPU запуск + замер времени cudaEvent ---
-    cudaEvent_t start, stop;
-    cudaEventCreate(&start);
-    cudaEventCreate(&stop);
-    cudaEventRecord(start);
+    // Создаём cudaEvent'ы для измерения времени
+    cudaEvent_t start, stop;                   // события для замера времени на GPU
+    cudaEventCreate(&start);                   // создаём событие начала
+    cudaEventCreate(&stop);                    // создаём событие конца
 
-    matmulNaive<<<grid, block>>>(d_A, d_B, d_C, N);
-    check(cudaGetLastError(), "kernel");
+    cudaEventRecord(start);                    // отметка T0 (до запуска ядра)
+    matmulNaive<<<grid, block>>>(d_A, d_B, d_C, N); // запуск ядра умножения матриц
+    check(cudaGetLastError(), "kernel");      // проверяем, что launch прошёл без ошибок
+    cudaEventRecord(stop);                     // отметка T1 (сразу после запуска)
 
-    cudaEventRecord(stop);
-    cudaEventSynchronize(stop);
-    float ms = 0.f;
-    cudaEventElapsedTime(&ms, start, stop);
+    cudaEventSynchronize(stop);             // Дожидаемся завершения ядра
+    float ms = 0.f;                            // здесь будет время в мс
+    cudaEventElapsedTime(&ms, start, stop);    // Δt = T1 - T0
 
-    // --- Копируем результат на CPU ---
-    check(cudaMemcpy(h_C.data(), d_C, bytes, cudaMemcpyDeviceToHost), "copy C back");
+    // --- Копируем результат на CPU (D2H) ---
+    check(cudaMemcpy(h_C.data(), d_C, bytes, cudaMemcpyDeviceToHost), "copy C back"); // D→H копия результата
 
-    // --- CPU reference для проверки и сравнения скорости ---
+    // --- CPU reference (для маленьких N, иначе слишком долго) ---
     auto t0 = std::chrono::high_resolution_clock::now();
-    matmulCPU(h_A, h_B, h_ref, N);
+    matmulCPU(h_A, h_B, h_ref, N);             // CPU-версия GEMM для проверки
     auto t1 = std::chrono::high_resolution_clock::now();
-    double ms_cpu = std::chrono::duration<double, std::milli>(t1 - t0).count();
+    double ms_cpu = std::chrono::duration<double, std::milli>(t1 - t0).count(); // время CPU
 
-    // --- Проверка корректности ---
+    // --- Проверка корректности (abs-погрешность 1e-3) ---
     bool ok = true;
     for (int i = 0; i < N * N; ++i) {
-        if (fabs(h_C[i] - h_ref[i]) > 1e-3f) { ok = false; break; }
+        if (fabs(h_C[i] - h_ref[i]) > 1e-3f) { ok = false; break; } // сравнение с допуском 1e-3
     }
 
-    printf("Matrix %dx%d\n", N, N);
+    printf("Matrix %dx%d\n", N, N);           // вывод размера
     printf("GPU naive matmul:  %.2f ms\n", ms);
     printf("CPU reference:     %.2f ms\n", ms_cpu);
     printf("Speedup:           %.2fx\n", ms_cpu / ms);
-    printf("Validation:        %s\n", ok ? "PASSED" : "FAILED");
+    printf("Validation:        %s\n", ok ? "PASSED" : "FAILED"); // корректность
 
-    cudaFree(d_A); cudaFree(d_B); cudaFree(d_C);
+    // --- Очистка ресурсов девайса ---
+    cudaFree(d_A); cudaFree(d_B); cudaFree(d_C); // освобождаем device-память
     return ok ? EXIT_SUCCESS : EXIT_FAILURE;
 } 
