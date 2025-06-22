@@ -10,6 +10,7 @@ add_subdirectory(modules/03-memory)
 add_subdirectory(modules/04-performance)
 add_subdirectory(modules/06-advanced)
 add_subdirectory(modules/07-libraries)
+add_subdirectory(modules/08-profiling)
 
 # Размещаем все исполняемые файлы прямо в корневой директории сборки
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
