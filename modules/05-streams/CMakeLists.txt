@@ -1,0 +1,3 @@
+add_executable(stream_overlap src/stream_overlap.cu)
+set_target_properties(stream_overlap PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+target_compile_features(stream_overlap PUBLIC cxx_std_17) 
