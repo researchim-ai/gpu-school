@@ -12,11 +12,12 @@
  *           где N — размер квадратной матрицы (по умолчанию 512)
  *****/
 
-#include <cstdio>
-#include <vector>
-#include <cuda_runtime.h>
-#include <chrono>
-#include <cmath>
+// Заголовки стандартной библиотеки
+#include <cstdio>      // printf / fprintf
+#include <vector>      // std::vector для удобного управления памятью
+#include <cuda_runtime.h> // CUDA Runtime API
+#include <chrono>      // измерение времени на CPU
+#include <cmath>       // fabs
 
 // --- Параметры ядра ---
 constexpr int TILE = 16; // размер блока 16×16 → 256 нитей
@@ -26,15 +27,15 @@ constexpr int TILE = 16; // размер блока 16×16 → 256 нитей
  * Каждая нить вычисляет один элемент C(row, col).
  ***********************/
 __global__ void matmulNaive(const float* A, const float* B, float* C, int N) {
-    int row = blockIdx.y * blockDim.y + threadIdx.y;
-    int col = blockIdx.x * blockDim.x + threadIdx.x;
-    if (row >= N || col >= N) return;
+    int row = blockIdx.y * blockDim.y + threadIdx.y; // глобальная строка
+    int col = blockIdx.x * blockDim.x + threadIdx.x; // глобальный столбец
+    if (row >= N || col >= N) return;               // выход за матрицу — ничего не делаем
 
     float sum = 0.0f;
     for (int k = 0; k < N; ++k) {
-        sum += A[row * N + k] * B[k * N + col];
+        sum += A[row * N + k] * B[k * N + col];     // скалярное произведение строки и столбца
     }
-    C[row * N + col] = sum;
+    C[row * N + col] = sum;                         // сохраняем элемент
 }
 
 // --- Утилита проверки ошибок ---

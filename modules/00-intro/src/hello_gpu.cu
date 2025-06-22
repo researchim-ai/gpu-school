@@ -17,32 +17,38 @@
  *       дожидаемся конца выполнения, чтобы printf успел записать вывод.
  *    4. Проверяем cudaGetLastError() на случай проблем во время запуска.
  *****/
-#include <cstdio>
-#include <cuda_runtime.h>
+#include <cstdio>              // printf на стороне CPU и внутри GPU (через device printf)
+#include <cuda_runtime.h>      // Основной заголовок CUDA Runtime API
 
-// __global__ указывает, что функция выполняется на устройстве (GPU)
-// и может быть вызвана только с хоста.
+/*****
+ * Каждая функция, помеченная __global__, компилируется в GPU-ядро.
+ * Её может вызвать только хост-код (CPU). Возврат всегда void.
+ *****/
 __global__ void hello_kernel() {
-    // threadIdx.x — локальный идентификатор нити в блоке
-    // blockIdx.x   — идентификатор блока в grid
+    // threadIdx.x — локальный индекс внутри блока (0..blockDim.x-1)
+    // blockIdx.x   — индекс блока внутри grid
     // blockDim.x   — размер блока (число нитей)
-    int global_id = threadIdx.x + blockIdx.x * blockDim.x;
-    printf("Hello from GPU thread %d\n", global_id);
+    int global_id = threadIdx.x + blockIdx.x * blockDim.x; // Вычисляем глобальный ID нити
+    printf("Hello from GPU thread %d\n", global_id);        // device-printf (работает медленно, но удобен для дебага)
 }
 
 int main() {
-    // 1 блок × 32 нити  → всего 32 нити
-    hello_kernel<<<1, 32>>>();
+    /*****
+     * Синтаксис <<<Grid, Block>>> указывает размеры запуска ядра:
+     *   • Grid  = 1 блок  (первый параметр)
+     *   • Block = 32 нитей (второй параметр)
+     * Всего создаётся 1 × 32 = 32 нити.
+     *****/
+    hello_kernel<<<1, 32>>>(); // Асинхронный вызов: CPU сразу продолжит выполнение
 
-    // Синхронизируемся: ждём завершения GPU, иначе программа может завершиться раньше
-    cudaDeviceSynchronize();
+    cudaDeviceSynchronize();   // Блокируем CPU до завершения всех предыдущих GPU-работ
 
-    // Проверяем возможные ошибки запуска ядра
-    cudaError_t err = cudaGetLastError();
-    if (err != cudaSuccess) {
+    // Проверяем, не случилось ли ошибки при запуске ядра или во время его выполнения
+    cudaError_t err = cudaGetLastError();           // Возвращает код последней ошибки Runtime API / ядра
+    if (err != cudaSuccess) {                       // cudaSuccess == 0 → всё хорошо
         fprintf(stderr, "CUDA error: %s\n", cudaGetErrorString(err));
-        return EXIT_FAILURE;
+        return EXIT_FAILURE;                        // Выходим с кодом 1 при ошибке
     }
 
-    return EXIT_SUCCESS;
+    return EXIT_SUCCESS;        // Код 0 → успех
 } 

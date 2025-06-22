@@ -17,7 +17,7 @@
 #include <cstdlib>
 #include <cuda_runtime.h>
 
-constexpr int THREADS = 256;   // размер блока (размер warp = 32)
+constexpr int THREADS = 256;   // размер блока (должен кратно 32 для полного варпа)
 
 /***************
  * Ядро с коалесцированным доступом.
@@ -26,11 +26,11 @@ constexpr int THREADS = 256;   // размер блока (размер warp = 3
  ***************/
 __global__ void vecAddCoalesced(const float* __restrict__ a,
                                 const float* __restrict__ b,
-                                float* __restrict__ c,
+                                float*       __restrict__ c,
                                 int N) {
-    int idx = blockDim.x * blockIdx.x + threadIdx.x;
+    int idx = blockDim.x * blockIdx.x + threadIdx.x; // глобальный индекс
     if (idx < N) {
-        c[idx] = a[idx] + b[idx];
+        c[idx] = a[idx] + b[idx];                    // последовательный доступ
     }
 }
 
@@ -55,7 +55,7 @@ void checkCuda(const char* msg) {
     cudaError_t err = cudaGetLastError();
     if (err != cudaSuccess) {
         fprintf(stderr, "%s: %s\n", msg, cudaGetErrorString(err));
-        exit(EXIT_FAILURE);
+        exit(EXIT_FAILURE);   // аварийно завершаем, если проблема
     }
 }
 
