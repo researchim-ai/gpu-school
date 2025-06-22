@@ -1,0 +1,3 @@
+add_executable(matmul_tiled src/matmul_tiled.cu)
+set_target_properties(matmul_tiled PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+target_compile_features(matmul_tiled PUBLIC cxx_std_17) 
