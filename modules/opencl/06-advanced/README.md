@@ -20,5 +20,14 @@ OpenCL reduction PASSED | N=16777216, sum=16777216.0, time=4.7 ms (wg + host)
 Сборка/запуск:
 ```bash
 cmake --build build --target reduction_atomic_cl
-./reduction_atomic_cl 1048576   # 1M элементов
+./reduction_atomic_cl 1048576
+```
+
+### Локальная сборка в каталоге модуля
+
+```bash
+cd modules/opencl/06-advanced
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build -j$(nproc)
+./build/reduction_atomic_cl 1048576
 ``` 

@@ -17,4 +17,13 @@
 ```bash
 cmake --build build --target matmul_naive_cl
 ./matmul_naive_cl 256
+```
+
+### Локальная сборка в каталоге модуля
+
+```bash
+cd modules/opencl/03-memory
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build -j$(nproc)
+./build/matmul_naive_cl 256
 ``` 

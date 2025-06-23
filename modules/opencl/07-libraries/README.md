@@ -12,6 +12,17 @@ cmake --build build --target gemm_clblast
 ctest -R gemm_clblast
 ```
 
+### Локальная сборка в каталоге модуля
+
+```bash
+cd modules/opencl/07-libraries
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCLBlast_DIR=/path/if/needed
+cmake --build build -j$(nproc)
+./build/gemm_clblast 512
+```
+
+Учтите: цель появится только если `find_package(CLBlast)` успешно нашёл библиотеку.
+
 Пример вывода:
 ```
 CLBlast SGEMM PASSED | N=512, time=4.12 ms

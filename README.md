@@ -59,3 +59,18 @@ cmake --build $airbuild --target hello_opencl -j$(nproc)
 ## Лицензия
 
 Все материалы распространяются под лицензией MIT (см. `LICENSE`). Исключение могут составлять сторонние библиотеки, приведённые в примерах — они лицензируются отдельно.  
+
+### Сборка отдельного примера из его каталога
+
+Каждый подмодуль имеет собственный `CMakeLists.txt`, поэтому можно
+собрать его автономно, не затрагивая остальной проект. Например для
+OpenCL SAXPY:
+
+```bash
+cd modules/opencl/02-basics
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build -j$(nproc)
+./build/saxpy_basic_cl 1048576
+```
+
+То же справедливо для CUDA-модулей (`modules/cuda/...`).  

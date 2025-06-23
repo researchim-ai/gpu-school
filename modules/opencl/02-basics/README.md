@@ -21,4 +21,13 @@ cmake --build build --target saxpy_basic_cl
 Вывод наподобие:
 ```
 OpenCL SAXPY PASSED | N=1048576, time=3.21 ms
+```
+
+### Локальная сборка в каталоге модуля
+
+```bash
+cd modules/opencl/02-basics
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build -j$(nproc)
+./build/saxpy_basic_cl 1048576
 ``` 

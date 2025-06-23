@@ -25,4 +25,13 @@ Using device: NVIDIA GeForce …
 Result from GPU: 42.0 (expected 42.0)
 ```
 
-Если вывод совпадает с `42.0`, значит OpenCL-рантайм и драйвер настроены верно. 
+Если вывод совпадает с `42.0`, значит OpenCL-рантайм и драйвер настроены верно.
+
+### Локальная сборка в каталоге модуля
+
+```bash
+cd modules/opencl/00-intro
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build -j$(nproc)
+./build/hello_opencl
+``` 

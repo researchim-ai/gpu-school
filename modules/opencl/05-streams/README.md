@@ -19,4 +19,13 @@
 ```bash
 cmake --build build --target stream_overlap_cl
 ./stream_overlap_cl 32   # 32 MiB данных
+```
+
+### Локальная сборка в каталоге модуля
+
+```bash
+cd modules/opencl/05-streams
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build -j$(nproc)
+./build/stream_overlap_cl 32
 ``` 
