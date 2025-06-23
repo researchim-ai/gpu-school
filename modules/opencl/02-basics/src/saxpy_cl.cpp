@@ -1,6 +1,6 @@
 /*
  * saxpy_cl.cpp — кроссплатформенный пример SAXPY (Y = a*X + Y) на OpenCL.
- * Позволяет сравнить API OpenCL с CUDA.
+ * Переиздание для модуля 02-basics.
  */
 
 #define CL_TARGET_OPENCL_VERSION 120 // хотим API 1.2

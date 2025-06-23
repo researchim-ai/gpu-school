@@ -7,39 +7,44 @@
 | Путь | Содержимое |
 |------|------------|
 | `modules/` | Папки с модулями курса (00-intro, 01-architecture …) |
-| `modules/00-intro/` | Простой пример `Hello GPU`, проверка окружения |
+| `modules/cuda/` | CUDA-модули курса (00-intro … 08-profiling) |
+| `modules/opencl/` | Аналогичные примеры на OpenCL (00-intro … 06-advanced) |
+| `modules/opencl/00-intro` | Минимальный `hello_opencl` |
+| `modules/opencl/04-performance` | Оптимизированный tiled MatMul |
 | `docs/` | (опционально) сгенерированная документация Sphinx/Markdown |
 | `ROADMAP.md` | Двоязычная дорожная карта всех модулей |
 | `CMakeLists.txt` | Корневая конфигурация CMake для сборки C/CUDA примеров |
 
 ## Быстрый старт
 
-1. Установите CUDA Toolkit ≥ 11, компилятор GCC/Clang и CMake ≥ 3.20.
-2. Соберите проект:
+1. Установите:
+   • NVIDIA/AMD драйвер с поддержкой CUDA *и/или* OpenCL ≥ 1.2 (≥ 3.0 ещё лучше);  
+   • CMake ≥ 3.20, GCC/Clang ≥ 11.
+
+2. Конфигурируйте и соберите **все** примеры одной командой:
 
 ```bash
-# из корня репозитория:
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
-cmake --build build -j$(nproc)
-# запуск всех примеров и тестов
-ctest --test-dir build --output-on-failure
+# Корень репозитория
+airbuild=build
+cmake -S . -B $airbuild -DCMAKE_BUILD_TYPE=Release
+cmake --build $airbuild -j$(nproc)
 ```
 
-Если нужно собрать и запустить только один пример:
+3. Запустите единый набор тестов (CUDA + OpenCL):
 
 ```bash
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
-cmake --build build --target hello_gpu -j$(nproc)
-./build/hello_gpu
+ctest --test-dir $airbuild --output-on-failure
 ```
+Вы увидите ~13 тестов `PASSED` — значит всё скомпилировалось и выполнилось.
 
-3. Запустите проверку окружения:
+4. Чтобы собрать и протестировать только один пример:
 
 ```bash
-./modules/00-intro/hello_gpu
+cmake --build $airbuild --target hello_opencl -j$(nproc)
+./build/hello_opencl
 ```
 
-Если увидите вывод `Hello from GPU thread …` — всё готово!
+Для CUDA-версии замените цель на `hello_gpu` и т.д.
 
 ## Дорожная карта
 См. файл `ROADMAP.md` — он описывает 17 модулей от введения в CUDA до capstone-проекта и DevOps-развёртывания.
@@ -54,3 +59,18 @@ cmake --build build --target hello_gpu -j$(nproc)
 ## Лицензия
 
 Все материалы распространяются под лицензией MIT (см. `LICENSE`). Исключение могут составлять сторонние библиотеки, приведённые в примерах — они лицензируются отдельно.  
+
+### Сборка отдельного примера из его каталога
+
+Каждый подмодуль имеет собственный `CMakeLists.txt`, поэтому можно
+собрать его автономно, не затрагивая остальной проект. Например для
+OpenCL SAXPY:
+
+```bash
+cd modules/opencl/02-basics
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build -j$(nproc)
+./build/saxpy_basic_cl 1048576
+```
+
+То же справедливо для CUDA-модулей (`modules/cuda/...`).  
