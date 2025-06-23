@@ -7,9 +7,11 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
 # Добавляем модули курса
 add_subdirectory(modules/cuda)
-add_subdirectory(modules/09-opencl)
 add_subdirectory(modules/opencl/00-intro)
 add_subdirectory(modules/opencl/02-basics)
+add_subdirectory(modules/opencl/03-memory)
+add_subdirectory(modules/opencl/04-performance)
+add_subdirectory(modules/opencl/05-streams)
 
 # Включаем тесты, чтобы примеры можно было запускать через `ctest`
 enable_testing()
@@ -21,6 +23,8 @@ add_test(NAME matmul_naive COMMAND matmul_naive)
 add_test(NAME matmul_tiled COMMAND matmul_tiled)
 add_test(NAME graph_vector_add COMMAND graph_vector_add)
 add_test(NAME gemm_cublas COMMAND gemm_cublas)
-add_test(NAME saxpy_cl COMMAND saxpy_cl)
 add_test(NAME hello_opencl COMMAND hello_opencl)
-add_test(NAME saxpy_basic_cl COMMAND saxpy_basic_cl) 
+add_test(NAME saxpy_basic_cl COMMAND saxpy_basic_cl)
+add_test(NAME matmul_naive_cl COMMAND matmul_naive_cl 128)
+add_test(NAME matmul_tiled_cl COMMAND matmul_tiled_cl 256)
+add_test(NAME stream_overlap_cl COMMAND stream_overlap_cl 32) 
