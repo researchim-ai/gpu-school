@@ -6,14 +6,41 @@
 
 | Путь | Содержимое |
 |------|------------|
-| `modules/` | Папки с модулями курса (00-intro, 01-architecture …) |
+| `modules/` | Директория с модулями курса |
 | `modules/cuda/` | CUDA-модули курса (00-intro … 08-profiling) |
 | `modules/opencl/` | Аналогичные примеры на OpenCL (00-intro … 06-advanced) |
-| `modules/opencl/00-intro` | Минимальный `hello_opencl` |
-| `modules/opencl/04-performance` | Оптимизированный tiled MatMul |
 | `docs/` | (опционально) сгенерированная документация Sphinx/Markdown |
 | `ROADMAP.md` | Двоязычная дорожная карта всех модулей |
 | `CMakeLists.txt` | Корневая конфигурация CMake для сборки C/CUDA примеров |
+
+## Зависимости
+
+| Компонент | Минимальная версия | Как установить (Ubuntu/Debian) |
+|-----------|--------------------|--------------------------------|
+| CMake     | 3.20 | `sudo apt install cmake` 
+| GCC/Clang | 11   | `sudo apt install build-essential` или `clang` |
+| CUDA Toolkit (для модулей CUDA) | 11.4 | `.run`-инсталлер с сайта NVIDIA или пакет `cuda-toolkit-X.Y` |
+| OpenCL ICD loader              | 1.2 | `sudo apt install ocl-icd-opencl-dev` |
+| GPU-драйвер с OpenCL 1.2+       | —   | NVIDIA ≥ 470, AMD ≥ AMDGPU-Pro 20.x |
+| CLBlast (опц.)                 | 1.6 | `sudo apt install libclblast-dev` |
+
+Docker-образ для быстрой проверки:
+
+В репозитории есть `docker/Dockerfile`.
+
+Собрать и запустить:
+```bash
+# в корне репозитория
+docker build -t gpu-school/dev -f docker/Dockerfile .
+
+# запустить контейнер с доступом к GPU (требуется nvidia-docker2)
+docker run --gpus all -it --rm -v $(pwd):/workspace gpu-school/dev
+
+# внутри контейнера:
+cmake -S /workspace -B /workspace/build -DCMAKE_BUILD_TYPE=Release
+cmake --build /workspace/build -j$(nproc)
+ctest --test-dir /workspace/build --output-on-failure
+```
 
 ## Быстрый старт
 
@@ -35,7 +62,6 @@ cmake --build $airbuild -j$(nproc)
 ```bash
 ctest --test-dir $airbuild --output-on-failure
 ```
-Вы увидите ~13 тестов `PASSED` — значит всё скомпилировалось и выполнилось.
 
 4. Чтобы собрать и протестировать только один пример:
 
@@ -43,8 +69,6 @@ ctest --test-dir $airbuild --output-on-failure
 cmake --build $airbuild --target hello_opencl -j$(nproc)
 ./build/hello_opencl
 ```
-
-Для CUDA-версии замените цель на `hello_gpu` и т.д.
 
 ## Дорожная карта
 См. файл `ROADMAP.md` — он описывает 17 модулей от введения в CUDA до capstone-проекта и DevOps-развёртывания.
