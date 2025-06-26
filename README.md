@@ -7,8 +7,8 @@
 | Путь | Содержимое |
 |------|------------|
 | `modules/` | Директория с модулями курса |
-| `modules/cuda/` | CUDA-модули курса (00-intro … 08-profiling) |
-| `modules/opencl/` | Аналогичные примеры на OpenCL (00-intro … 06-advanced) |
+| `modules/cuda/` | CUDA-модули курса (00-intro, 01-memory-access, 02-vector-add, 03-matmul-naive, 04-matmul-tiled, 05-streams, 06-graph-api, 07-cublas, 08-profiling) |
+| `modules/opencl/` | Примеры на OpenCL (00-intro, 02-saxpy, 03-matmul-naive, 04-matmul-tiled, 05-streams, 06-reduction-atomic, 07-clblast) |
 | `docs/` | (опционально) сгенерированная документация Sphinx/Markdown |
 | `ROADMAP.md` | Двоязычная дорожная карта всех модулей |
 | `CMakeLists.txt` | Корневая конфигурация CMake для сборки C/CUDA примеров |
@@ -91,7 +91,7 @@ cmake --build $airbuild --target hello_opencl -j$(nproc)
 OpenCL SAXPY:
 
 ```bash
-cd modules/opencl/02-basics
+cd modules/opencl/02-saxpy
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build -j$(nproc)
 ./build/saxpy_basic_cl 1048576

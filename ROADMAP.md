@@ -2,17 +2,6 @@
 
 ## Русская версия
 
-### Целевая аудитория
-- Студенты старших курсов университетов, изучающие вычислительную технику, прикладную математику, машинное обучение
-- Инженеры-разработчики, желающие ускорить свои приложения на GPU
-- Исследователи, работающие с большими вычислительными задачами
-
-### Предварительные требования
-- Уверенные знания C/C++
-- Базовое понимание линейной алгебры, алгоритмов и структур данных
-- Желательно знание Python для примеров высокоуровневой интеграции
-- Доступ к NVIDIA GPU c поддержкой CUDA 11+
-
 ### Структура и временная шкала
 Каждый модуль рассчитан в среднем на 1-2 недели изучения с практикой.
 
@@ -45,17 +34,6 @@
 ---
 
 ## English Version
-
-### Target Audience
-- Senior undergraduate or graduate students in computer science, applied mathematics, machine learning
-- Software engineers aiming to accelerate their applications on GPUs
-- Researchers dealing with heavy numerical workloads
-
-### Prerequisites
-- Solid knowledge of C/C++
-- Basic understanding of linear algebra, algorithms and data structures
-- (Optional) Python for high-level integration examples
-- Access to an NVIDIA GPU with CUDA 11+
 
 ### Structure & Timeline
 Each module is designed for approximately 1–2 weeks of study with hands-on practice.
@@ -94,6 +72,7 @@ Each module is designed for approximately 1–2 weeks of study with hands-on pra
 1. Утвердить содержание дорожной карты и приоритеты модулей.
 2. Настроить структуру репозитория: `modules/` с примерами, `docs/` для методических материалов.
 3. Реализовать материалы Модуля 0 (скрипты установки, Hello GPU).
-4. Подготовить шаблон Jupyter Notebook и CMake-проекта для всех будущих лабораторных.
+4. Поддерживать актуальную структуру репозитория: `modules/cuda/` (00-intro … 08-profiling) и `modules/opencl/` (00-intro, 02-saxpy, 03-matmul-naive, 04-matmul-tiled, 05-streams, 06-reduction-atomic, 07-clblast) + директория `docs/` для методических материалов.
+5. Поддерживать актуальную структуру репозитория: `modules/cuda/` (00-intro … 08-profiling) и `modules/opencl/` (00-intro, 02-saxpy, 03-matmul-naive, 04-matmul-tiled, 05-streams, 06-reduction-atomic, 07-clblast) + директория `docs/` для методических материалов.
 
 > Feel free to propose additions or adjustments! 
