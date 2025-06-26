@@ -8,12 +8,12 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 # Добавляем модули курса
 add_subdirectory(modules/cuda)
 add_subdirectory(modules/opencl/00-intro)
-add_subdirectory(modules/opencl/02-basics)
-add_subdirectory(modules/opencl/03-memory)
-add_subdirectory(modules/opencl/04-performance)
+add_subdirectory(modules/opencl/02-saxpy)
+add_subdirectory(modules/opencl/03-matmul-naive)
+add_subdirectory(modules/opencl/04-matmul-tiled)
 add_subdirectory(modules/opencl/05-streams)
-add_subdirectory(modules/opencl/06-advanced)
-add_subdirectory(modules/opencl/07-libraries)
+add_subdirectory(modules/opencl/06-reduction-atomic)
+add_subdirectory(modules/opencl/07-clblast)
 
 # Включаем тесты, чтобы примеры можно было запускать через `ctest`
 enable_testing()
